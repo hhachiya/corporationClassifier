@@ -15,7 +15,7 @@ if __name__ ==  '__main__':
     mt = MeCab.Tagger('')
     mt.parse('') 
   	 
-    model = word2vec.Word2Vec.load("../data/wiki.model")
+    model = word2vec.Word2Vec.load("../data/model/wiki.model")
 
     title = df['title']
     description = df['description']
