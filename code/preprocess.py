@@ -38,7 +38,7 @@ if __name__ ==  '__main__':
             if word == "EOS": #最後の単語になれば、（１）を終える
                 break
             else:
-                pos = row.split("\t")[1]
+                pos = word_mecab.split("\t")[1]
                 slice = pos.split(",") #単語の品詞を取得
                 if slice[0] in ["名詞","動詞","形容詞"]: #特定の品詞のみをword2vecにかける
                     try:
@@ -53,7 +53,7 @@ if __name__ ==  '__main__':
             if word == "EOS": #最後の単語になれば、（１）を終える
                 break
             else:
-                pos = row.split("\t")[1]
+                pos = word_mecab.split("\t")[1]
                 slice = pos.split(",") #単語の品詞を取得
                 if slice[0] in ["名詞","動詞","形容詞"]: #特定の品詞のみをword2vecにかける
                     try:
