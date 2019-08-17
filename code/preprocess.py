@@ -10,7 +10,7 @@ import pickle
 
 if __name__ ==  '__main__':
 
-    df = pd.read_csv("../data/corporation_sample.csv")
+    df = pd.read_csv("../data/corporation_sample.csv") #load csv file
 
     mt = MeCab.Tagger('')
     mt.parse('') 
@@ -66,6 +66,7 @@ if __name__ ==  '__main__':
  
         out_title.append(parts_title)
         out_description.append(parts_description)
+        #pdb.set_trace()
 
         with open('../data/out/title_vec.pickle','wb') as f:
             pickle.dump(out_title,f)
