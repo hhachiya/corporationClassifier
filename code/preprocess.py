@@ -25,13 +25,15 @@ if __name__ ==  '__main__':
     out_title = [] #タイトルの全データの特徴量が入る
     out_description = [] #内容の全データの特徴量が入る
 
-
-    for i in range(data_len): #データ数分forループ
+    #------------------------------------
+    #データ数分forループ
+    for i in range(data_len):
         title_mecab = mt.parse(title[i]) #titl[i]を分かち書き
         description_mecab = mt.parse(description[i]) #description[i]を分かち書き
         parts_title = [] #タイトルごとの特徴量が入る
         parts_description = [] #内容ごとの特徴量が入る
 
+        #-------------------------
         #タイトルに関して形態素解析を行い、word2vecを用いて特徴量を抽出
         for word_mecab in title_mecab.split("\n"): #改行ごとに単語を取得・・・（１）
             word = word_mecab.split("\t")[0] #タブごとに文章を分割
@@ -46,7 +48,9 @@ if __name__ ==  '__main__':
                         parts_title.append(word_vec) #単語ごとに配列に追加
                     except: #辞書に存在しない言葉があった場合、ベクトルに変換できない
                         pass
+        #-------------------------
 
+        #-------------------------
         #タイトルに関して形態素解析を行い、word2vecを用いて特徴量を抽出
         for word_mecab in description_mecab.split("\n"): #改行ごとに単語を取得・・・（１）
             word = word_mecab.split("\t")[0] #タブごとに文章を分割
@@ -61,12 +65,17 @@ if __name__ ==  '__main__':
                         parts_description.append(word_vec) #単語ごとに配列に追加
                     except: #辞書に存在しない言葉があった場合、ベクトルに変換できない
                         pass
+        #-------------------------
 
+        #-------------------------
         out_title.append(parts_title) #タイトルごとに配列に追加
         out_description.append(parts_description) #説明ごとに配列に追加
-        #pdb.set_trace()
+
         #pickleでout_title,out_out_descriptionを保存
         with open('../data/out/title_vec.pickle','wb') as f:
             pickle.dump(out_title,f)
         with open('../data/out/description_vec.pickle','wb') as f:
             pickle.dump(out_description,f)
+        #-------------------------
+
+    #------------------------------------
