@@ -6,6 +6,34 @@ import MeCab
 from gensim.models import word2vec
 import pickle
 
+def make_x_by_ave(title,description):
+    data_len = len(title)
+    for i in range(data_len):
+        title_len = len(title[i])
+        description_len = len(description[i])
+
+        feature_title_parts = np.zeros_like(title[0][0])
+        feature_description_parts = np.zeros_like(description[0][0])
+        
+        for t in range(title_len):
+            feature_title_parts = np.add(feature_title_parts,title[i][t])
+        if title_len > 0:
+            feature_title_parts = np.divide(feature_title_parts,title_len)
+
+        for d in range(description_len):
+            feature_description_parts = np.add(feature_description_parts,description[i][d])
+        if description_len > 0:
+            feature_description_parts = np.divide(feature_description_parts,description_len)
+        
+        if i == 0:
+            feature_title = feature_title_parts[np.newaxis]
+            feature_description = feature_description_parts[np.newaxis]
+        else:
+            feature_title = np.append(feature_title,feature_title_parts[np.newaxis],axis=0)
+            feature_description = np.append(feature_description,feature_description_parts[np.newaxis],axis=0)
+
+    return np.append(feature_title[np.newaxis],feature_description[np.newaxis],axis=0)
+
 
 
 if __name__ ==  '__main__':
@@ -70,12 +98,21 @@ if __name__ ==  '__main__':
         #-------------------------
         out_title.append(parts_title) #タイトルごとに配列に追加
         out_description.append(parts_description) #説明ごとに配列に追加
-
-        #pickleでout_title,out_out_descriptionを保存
-        with open('../data/out/title_vec.pickle','wb') as f:
-            pickle.dump(out_title,f)
-        with open('../data/out/description_vec.pickle','wb') as f:
-            pickle.dump(out_description,f)
-        #-------------------------
+        
+    X = make_x_by_ave(out_title,out_description)
+    Y = np.array(y)
+    
+    with open('../data/out/data_x.pickle','wb') as f:
+        pickle.dump(X,f)
+    with open('../data/out/data_y.pickle','wb') as f:
+        pickle.dump(Y,f)
+    """
+    #pickleでout_title,out_out_descriptionを保存
+    with open('../data/out/title_vec.pickle','wb') as f:
+        pickle.dump(out_title,f)
+    with open('../data/out/description_vec.pickle','wb') as f:
+        pickle.dump(out_description,f)
+    """
+    #-------------------------
 
     #------------------------------------
