@@ -40,7 +40,7 @@ def make_x_by_ave(title,description):
             feature_description = np.append(feature_description,feature_description_parts[np.newaxis],axis=0)
         #-------------------------
     #-------------------------
-    return np.append(feature_title[np.newaxis],feature_description[np.newaxis],axis=0 #feature_title,feature_descriptionをまとめて出力((2(title,description),221(データ数),200(特徴ベクトル)))
+    return np.append(feature_title[np.newaxis],feature_description[np.newaxis],axis=0) #feature_title,feature_descriptionをまとめて出力((2(title,description),221(データ数),200(特徴ベクトル)))
 
 
 
