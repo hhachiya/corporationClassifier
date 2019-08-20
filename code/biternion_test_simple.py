@@ -18,6 +18,8 @@ import sys
 from matplotlib.colors import LinearSegmentedColormap
 from pylab import rcParams
 import time
+from sklearn.model_selection import train_test_split
+
 
 #===========================
 # レイヤーの関数
@@ -55,6 +57,7 @@ def conv2d_relu(inputs, w, b, stride):
 	return conv
 
 def conv2d_bn_relu(inputs, w, b, stride,pad='SAME',isTrain=True):
+    #pdb.set_trace()
     conv = tf.nn.conv2d(inputs, w, strides=stride, padding=pad) + b
     conv = tf.layers.batch_normalization(conv, training=isTrain, trainable=isTrain)
     conv = tf.nn.relu(conv)
@@ -99,6 +102,7 @@ def conv2d_t(inputs, w, b, output_shape, stride):
 
 # fc layer with ReLU
 def fc_relu(inputs, w, b, rate=0.0):
+    #pdb.set_trace()
     fc = tf.matmul(inputs, w) + b
     fc = tf.nn.dropout(fc, rate=rate)
     fc = tf.nn.relu(fc)
@@ -123,48 +127,23 @@ def flatten(inputs):
     return vec
 
 #=========================================================================
-
 def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
-    chan = [3,24,24,48,48,64,64]
-    layerNum = len(chan)-1
+    node = [400,100,50,1]
+    layerNum = len(node)-1
     f_size = 3
 
     with tf.variable_scope('baseCNN') as scope:
         if reuse:
             scope.reuse_variables()
 
-        W = [weight_variable("convW{}".format(i),[f_size,f_size,chan[i],chan[i+1]]) for i in range(layerNum)]
-        B = [bias_variable("convB{}".format(i),[chan[i+1]]) for i in range(layerNum)]
+        W = [weight_variable("convW{}".format(i),[node[i],node[i+1]]) for i in range(layerNum)]
+        B = [bias_variable("convB{}".format(i),[node[i+1]]) for i in range(layerNum)]
 
-        #pdb.set_trace()
-        # 34 -> 32
-        conv = conv2d_bn_relu(x,W[0],B[0],[1,1,1,1],pad='VALID',isTrain=isTrain)
-        # 32 -> 30 -> 15
-        conv = conv2d_bn_pool2x2_relu(conv,W[1],B[1],[1,1,1,1],pad='VALID',isTrain=isTrain)
-        # 15 -> 13
-        conv = conv2d_bn_relu(conv,W[2],B[2],[1,1,1,1],pad='VALID',isTrain=isTrain)
-        # 13 -> 11 -> 6
-        conv = conv2d_bn_pool2x2_relu(conv,W[3],B[3],[1,1,1,1],pad='VALID',isTrain=isTrain)
-        # 6 -> 4
-        conv = conv2d_bn_relu(conv,W[4],B[4],[1,1,1,1],pad='VALID',isTrain=isTrain)
-        # 4 -> 2
-        conv = conv2d_bn_relu(conv,W[5],B[5],[1,1,1,1],pad='VALID',isTrain=isTrain)
+        fc1 = fc_relu(x,W[0],B[0],rates[1])
+        fc2 = fc_relu(fc1,W[1],B[1])
+        fc3 = tf.nn.softmax(fc_relu(fc2,W[2],B[2]))
 
-        fc1 = flatten(conv)
-        fc1 = tf.nn.dropout(fc1,rate=rates[0])
-
-        fcW1 = weight_variable("fcW1",[2*2*64,128])
-        fcB1 = bias_variable("fcB1",[128])
-        fc1 = fc_relu(fc1,fcW1,fcB1,rates[1])
-
-        fcW2 = weight_variable("fcW2",[128,2])
-        fcB2 = bias_variable("fcB2",[2])
-        fc2 = fc(fc1,fcW2,fcB2)
-
-        # 単位ベクトルに正規化
-        fc2 = vec_norm(fc2)
-
-        return fc2
+    return fc3
 
 #========================================
 
@@ -270,16 +249,33 @@ def show(los,me,se,isWhat):
         print("< validate >")
     print("  lossReg={}, MAE={}±{}".format(los,me,se))
     return
-
-def next_batch(num,data,labels):
-    idx = np.arange(0 , len(data))
+"""
+def next_batch(num,data,labels,epo):
+    idx = np.arange(0,len(data))
     np.random.shuffle(idx)
+    #pdb.set_trace()
     idx = idx[:num]
     data_shuffle = data[idx]
     labels_shuffle = labels[idx]
 
     return data_shuffle, labels_shuffle
+"""
+def next_batch(batch_size,x,y,index_in_epoch,epochs_completed):
+    num_examples = x.shape[0]
 
+    start = index_in_epoch
+    index_in_epoch += batch_size
+
+    if index_in_epoch > num_examples:
+        epochs_completes += 1
+        perm = np.arange(num_examples)
+        x = x[perm]
+        y = y[perm]
+        start = 0
+        index_in_epoch = batch_size
+        assert batch_size <= num_examples
+    end = index_in_epoch
+    return x[start:end],y[start:end],x,y,index_in_epoch,epochs_completed
 
 if __name__ == "__main__":
 
@@ -295,58 +291,43 @@ if __name__ == "__main__":
     plotWid = 5
     augNum = 3
     # バッチデータ数
-    batchSize = 300
+    batchSize = 30
     croped_batchSize = batchSize*augNum
 
     #======================================
     # データ読み込み
-    realData = pickle.load(open("data/realData4reg.pickle","rb"))
+    X = pickle.load(open("../data/out/data_x.pickle","rb"))
+    Y = pickle.load(open("../data//out/data_y.pickle","rb"))
 
-    # validation
-    valid_num = realData.validate.num_examples
-    valid_x = realData.validate.images
-    valid_label = np.reshape(realData.validate.labels,[valid_num,1])
-
-    # test
-    test_num = realData.test.num_examples
-    test_x = realData.test.images
-    test_label = np.reshape(realData.test.labels,[test_num,1])
-    #======================================
-    ## placeholder
-    #pdb.set_trace()
-    x_train = tf.placeholder(tf.float32,shape=[None,50,50,3])
+    (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.2,random_state=0)
+    train_y = train_y[np.newaxis].T
+    test_y = test_y[np.newaxis].T
+    
+    x_train = tf.placeholder(tf.float32,shape=[None,400])
     x_label = tf.placeholder(tf.float32,shape=[None,1])
-    x_crop_train, x_aug_label = crop(x_train,batchSize,[34,34],y=x_label,augNum=augNum)
-    x_vec_label = deg2vec(x_aug_label)
+    
 
-    x_valid = tf.placeholder(tf.float32,shape=[None,50,50,3])
-    ##------ 注意:x_valid_cropsはlist --------------------
-    x_valid_crops = crop(x_valid,valid_num,[34,34],isTrain=False)
-    x_valid_label = tf.placeholder(tf.float32,shape=[None,1])
-    x_valid_vec_label = deg2vec(x_valid_label)
-
-    x_test = tf.placeholder(tf.float32,shape=[None,50,50,3])
-    ##------ 注意:x_test_cropsはlist --------------------
-    x_test_crops = crop(x_test,test_num,[34,34],isTrain=False)
+    x_test = tf.placeholder(tf.float32,shape=[None,400])
     x_test_label = tf.placeholder(tf.float32,shape=[None,1])
-    x_test_vec_label = deg2vec(x_test_label)
+
     #======================================
     #--------------------------------------
     ## build model
-    train_pred = baseCNN(x_crop_train,rates=[0.2,0.5])
+    train_pred = baseCNN(x_train,rates=[0.2,0.5])
 
-    valid_preds = [baseCNN(valid,reuse=True,isTrain=False) for valid in x_valid_crops]
-    test_preds = [baseCNN(test,reuse=True,isTrain=False) for test in x_test_crops]
-
-    valid_pred = ensemble_biternion(valid_preds)
-    test_pred = ensemble_biternion(test_preds)
+    #valid_preds = [baseCNN(valid,reuse=True,isTrain=False) for valid in x_valid_crops]
+    #test_preds = [baseCNN(x_test,reuse=True,isTrain=False) for test in x_test]
+    test_preds = tf.map_fn(lambda x:baseCNN(tf.expand_dims(x,0),reuse=True,isTrain=False),x_test)
+    #pdb.set_trace()
+    #valid_pred = ensemble_biternion(valid_preds)
+    #test_pred = ensemble_biternion(test_preds)
     #--------------------------------------
     ## loss function
-    #pdb.set_trace()
-
-    lossReg = VMBiternion(train_pred,x_vec_label)
-    valid_lossReg = VMBiternion(valid_pred,x_valid_vec_label)
-    test_lossReg = VMBiternion(test_pred,x_test_vec_label)
+    
+    cross_entropy_train = tf.reduce_mean(-tf.reduce_sum(train_pred*tf.log(x_label)))
+    #lossReg = VMBiternion(train_pred,x_label)
+    #valid_lossReg = VMBiternion(valid_pred,x_valid_vec_label)
+    cross_entropy_test = tf.reduce_mean(-tf.reduce_sum(test_preds*tf.log(x_test_label)))
 
     #--------------------------------------
     ## trainer & vars
@@ -355,7 +336,7 @@ if __name__ == "__main__":
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, scope="baseCNN")
     with tf.control_dependencies(extra_update_ops):
         regVars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="baseCNN")
-        trainerReg = tf.train.AdamOptimizer(1e-3).minimize(lossReg, var_list=regVars)
+        trainerReg = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy_train, var_list=regVars)
     #trainerReg = tf.train.AdadeltaOptimizer(1e-3).minimize(lossReg, var_list=regVars)
 
     #--------------------------------------
@@ -366,10 +347,10 @@ if __name__ == "__main__":
     tra_serr_list = []
     tra_preds_list = []
     tra_label_list = []
-    val_loss_list = []
-    val_merr_list = []
-    val_serr_list = []
-    val_preds_list = []
+    #val_loss_list = []
+    #val_merr_list = []
+    #val_serr_list = []
+    #val_preds_list = []
     tes_loss_list = []
     tes_merr_list = []
     tes_serr_list = []
@@ -379,77 +360,78 @@ if __name__ == "__main__":
     sess.run(tf.global_variables_initializer())
     ite = 0
     isStop = False
+    epochs_completed = 0
+    index_in_epoch = 0
     #======================================
 
-    pdb.set_trace()
+    #pdb.set_trace()
 
     while not isStop:
         ite = ite + 1
-
         #-----------------
         ## バッチの取得
         #pdb.set_trace()
-        batch_x,batch_label = realData.train.next_batch(batchSize)
+        batch_x,batch_label,train_x,train_y,index_in_epoch,epochs_completed = next_batch(batchSize,train_x,train_y,index_in_epoch,epochs_completed)
         batch_label = np.reshape(batch_label,[batchSize,1])
-        crop_batch_label = np.tile(batch_label,[1,augNum])
-        crop_batch_label = np.reshape(crop_batch_label,[croped_batchSize,1])
-        epo = realData.train.epochs_completed
+        #crop_batch_label = np.tile(batch_label,[1,augNum])
+        #crop_batch_label = np.reshape(crop_batch_label,[croped_batchSize,1])
+        #epo= X.train.epochs_completed
         #-----------------
-
+        
         # training
-        _,lossReg_value,pred_value = sess.run([trainerReg,lossReg,train_pred],feed_dict={x_train:batch_x, x_label:batch_label})
+        _,lossReg_value,pred_value = sess.run([trainerReg,cross_entropy_train,train_pred],feed_dict={x_train:batch_x, x_label:batch_label})
 
-        merr,serr = MAE(pred_value,crop_batch_label)
+        #merr,serr = MAE(pred_value,batch_label)
 
         # 保存
         tra_loss_list.append(lossReg_value)
-        tra_merr_list.append(merr)
-        tra_serr_list.append(serr)
+        #tra_merr_list.append(merr)
+        #tra_serr_list.append(serr)
         tra_preds_list.append(pred_value)
-        tra_label_list.append(crop_batch_label)
+        tra_label_list.append(batch_label)
 
         # test
-        test_pred_value, test_lossReg_value = sess.run([test_pred,test_lossReg],feed_dict={x_test:test_x, x_test_label:test_label})
-        test_merr, test_serr = MAE(test_pred_value, test_label)
+        test_pred_value, test_lossReg_value = sess.run([test_preds,cross_entropy_test],feed_dict={x_test:test_x, x_test_label:test_y})
+        #test_merr, test_serr = MAE(test_pred_value, test_y)
         # validation
-        valid_pred_value, valid_lossReg_value = sess.run([valid_pred,valid_lossReg],feed_dict={x_valid:valid_x, x_valid_label:valid_label})
-        valid_merr, valid_serr = MAE(valid_pred_value,valid_label)
+        #valid_pred_value, valid_lossReg_value = sess.run([valid_pred,valid_lossReg],feed_dict={x_valid:valid_x, x_valid_label:valid_label})
+        #valid_merr, valid_serr = MAE(valid_pred_value,valid_label)
 
         # 保存
-        val_loss_list.append(valid_lossReg_value)
-        val_merr_list.append(valid_merr)
-        val_serr_list.append(valid_serr)
-        val_preds_list.append(valid_pred_value)
+        #val_loss_list.append(valid_lossReg_value)
+        #val_merr_list.append(valid_merr)
+        #val_serr_list.append(valid_serr)
+        #val_preds_list.append(valid_pred_value)
 
         tes_loss_list.append(test_lossReg_value)
-        tes_merr_list.append(test_merr)
-        tes_serr_list.append(test_serr)
+        #tes_merr_list.append(test_merr)
+        #tes_serr_list.append(test_serr)
         tes_preds_list.append(test_pred_value)
 
         if (ite%100==0):
-            show(lossReg_value,merr,serr,"train")
-            show(valid_lossReg_value, valid_merr, valid_serr, "valid")
-            show(test_lossReg_value, test_merr, test_serr,"test")
+            show(lossReg_value,"train")
+            #show(valid_lossReg_value, valid_merr, valid_serr, "valid")
+            show(test_lossReg_value,"test")
 
-        if epo==nEpo:
+        if epochs_completed==nEpo:
             isStop = True
 
 
     with open("log/biternion_test_log.pickle","wb") as f:
         pickle.dump(tra_loss_list,f)
-        pickle.dump(tra_merr_list,f)
-        pickle.dump(tra_serr_list,f)
+        #pickle.dump(tra_merr_list,f)
+        #pickle.dump(tra_serr_list,f)
         pickle.dump(tra_preds_list,f)
         pickle.dump(tra_label_list,f)
 
-        pickle.dump(val_loss_list,f)
-        pickle.dump(val_merr_list,f)
-        pickle.dump(val_serr_list,f)
-        pickle.dump(val_preds_list,f)
-        pickle.dump(valid_label,f)
+        #pickle.dump(val_loss_list,f)
+        #pickle.dump(val_merr_list,f)
+        #pickle.dump(val_serr_list,f)
+        #pickle.dump(val_preds_list,f)
+        #pickle.dump(valid_label,f)
 
         pickle.dump(tes_loss_list,f)
-        pickle.dump(tes_merr_list,f)
-        pickle.dump(tes_serr_list,f)
+        #pickle.dump(tes_merr_list,f)
+        #pickle.dump(tes_serr_list,f)
         pickle.dump(tes_preds_list,f)
         pickle.dump(test_label,f)

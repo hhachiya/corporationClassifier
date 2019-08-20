@@ -10,7 +10,7 @@ import numpy
 from six.moves import urllib
 from six.moves import xrange	# pylint: disable=redefined-builtin
 import tensorflow as tf
-import prepare_data
+#import prepare_data
 import tarfile
 import numpy as np
 import pickle
