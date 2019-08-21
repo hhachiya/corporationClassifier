@@ -141,7 +141,7 @@ def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
 
         fc1 = fc_relu(x,W[0],B[0],rates[1])
         fc2 = fc_relu(fc1,W[1],B[1])
-        fc3 = tf.nn.softmax(fc_relu(fc2,W[2],B[2]))
+        fc3 = tf.nn.sigmoid(fc_relu(fc2,W[2],B[2]))
 
     return fc3
 
@@ -267,7 +267,7 @@ def next_batch(batch_size,x,y,index_in_epoch,epochs_completed):
     index_in_epoch += batch_size
 
     if index_in_epoch > num_examples:
-        epochs_completes += 1
+        epochs_completed += 1
         perm = np.arange(num_examples)
         x = x[perm]
         y = y[perm]
@@ -389,14 +389,14 @@ if __name__ == "__main__":
         #tra_serr_list.append(serr)
         tra_preds_list.append(pred_value)
         tra_label_list.append(batch_label)
-
+        
         # test
         test_pred_value, test_lossReg_value = sess.run([test_preds,cross_entropy_test],feed_dict={x_test:test_x, x_test_label:test_y})
         #test_merr, test_serr = MAE(test_pred_value, test_y)
         # validation
         #valid_pred_value, valid_lossReg_value = sess.run([valid_pred,valid_lossReg],feed_dict={x_valid:valid_x, x_valid_label:valid_label})
         #valid_merr, valid_serr = MAE(valid_pred_value,valid_label)
-
+        print("ite{0}:trainLoss:{1},testLoss:{2}".format(ite,lossReg_value,test_lossReg_value))
         # 保存
         #val_loss_list.append(valid_lossReg_value)
         #val_merr_list.append(valid_merr)
@@ -408,10 +408,9 @@ if __name__ == "__main__":
         #tes_serr_list.append(test_serr)
         tes_preds_list.append(test_pred_value)
 
-        if (ite%100==0):
-            show(lossReg_value,"train")
-            #show(valid_lossReg_value, valid_merr, valid_serr, "valid")
-            show(test_lossReg_value,"test")
+        #show(lossReg_value,"train")
+        #show(valid_lossReg_value, valid_merr, valid_serr, "valid")
+         #show(test_lossReg_value,"test")
 
         if epochs_completed==nEpo:
             isStop = True

@@ -75,7 +75,7 @@ if __name__ ==  '__main__':
     X = np.array([np.hstack([np.mean(np.array(out_title[i]),axis=0),np.mean(np.array(out_description[i]),axis=0)]) for i in range(len(out_title))]) ##feature_title,feature_descriptionをまとめて出力(221(データ数),400(特徴ベクトル)))
     Y = np.array(y) #labelをnumpyに変換
     #-------------------------
-
+    i#pdb.set_trace()
     #-------------------------
     #------データをpickleで保存
     with open('../data/out/data_x.pickle','wb') as f:
