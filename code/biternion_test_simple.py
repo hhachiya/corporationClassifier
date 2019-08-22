@@ -138,11 +138,11 @@ def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
 
         W = [weight_variable("convW{}".format(i),[node[i],node[i+1]]) for i in range(layerNum)]
         B = [bias_variable("convB{}".format(i),[node[i+1]]) for i in range(layerNum)]
-
+        #pdb.set_trace()
         fc1 = fc_relu(x,W[0],B[0],rates[1])
         fc2 = fc_relu(fc1,W[1],B[1])
         fc3 = tf.nn.sigmoid(fc_relu(fc2,W[2],B[2]))
-
+        
     return fc3
 
 #========================================
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     sess = tf.Session(config=config)
 
     #Epoch数
-    nEpo = 50
+    nEpo = 1000
     # plotする画像
     plotNum = 25
     plotWid = 5
@@ -317,17 +317,23 @@ if __name__ == "__main__":
 
     #valid_preds = [baseCNN(valid,reuse=True,isTrain=False) for valid in x_valid_crops]
     #test_preds = [baseCNN(x_test,reuse=True,isTrain=False) for test in x_test]
-    test_preds = tf.map_fn(lambda x:baseCNN(tf.expand_dims(x,0),reuse=True,isTrain=False),x_test)
+    #test_preds = tf.map_fn(lambda x:baseCNN(tf.expand_dims(x,0),reuse=True,isTrain=False),x_test)
+    test_preds = baseCNN(x_test,reuse=True,isTrain=False)
     #pdb.set_trace()
     #valid_pred = ensemble_biternion(valid_preds)
     #test_pred = ensemble_biternion(test_preds)
     #--------------------------------------
     ## loss function
     
-    cross_entropy_train = tf.reduce_mean(-tf.reduce_sum(train_pred*tf.log(x_label)))
+    #cross_entropy_train = tf.reduce_mean(-tf.reduce_sum(train_pred*tf.log(x_label)))
     #lossReg = VMBiternion(train_pred,x_label)
     #valid_lossReg = VMBiternion(valid_pred,x_valid_vec_label)
-    cross_entropy_test = tf.reduce_mean(-tf.reduce_sum(test_preds*tf.log(x_test_label)))
+    #cross_entropy_test = tf.reduce_mean(-tf.reduce_sum(test_preds*tf.log(x_test_label)))
+    #pdb.set_trace()
+    train_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=train_pred,labels=x_label))
+    test_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=test_preds,labels=x_test_label))
+
+    
 
     #--------------------------------------
     ## trainer & vars
@@ -336,7 +342,7 @@ if __name__ == "__main__":
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, scope="baseCNN")
     with tf.control_dependencies(extra_update_ops):
         regVars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="baseCNN")
-        trainerReg = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy_train, var_list=regVars)
+        trainerReg = tf.train.AdamOptimizer(1e-3).minimize(train_loss, var_list=regVars)
     #trainerReg = tf.train.AdadeltaOptimizer(1e-3).minimize(lossReg, var_list=regVars)
 
     #--------------------------------------
@@ -355,6 +361,8 @@ if __name__ == "__main__":
     tes_merr_list = []
     tes_serr_list = []
     tes_preds_list = []
+    tes_label_list = []
+    ite_list = []
     #======================================
     # 初期化
     sess.run(tf.global_variables_initializer())
@@ -368,6 +376,7 @@ if __name__ == "__main__":
 
     while not isStop:
         ite = ite + 1
+        ite_list.append(ite)
         #-----------------
         ## バッチの取得
         #pdb.set_trace()
@@ -379,8 +388,8 @@ if __name__ == "__main__":
         #-----------------
         
         # training
-        _,lossReg_value,pred_value = sess.run([trainerReg,cross_entropy_train,train_pred],feed_dict={x_train:batch_x, x_label:batch_label})
-
+        _,lossReg_value,pred_value = sess.run([trainerReg,train_loss,train_pred],feed_dict={x_train:batch_x, x_label:batch_label})
+        #pdb.set_trace()
         #merr,serr = MAE(pred_value,batch_label)
 
         # 保存
@@ -391,7 +400,7 @@ if __name__ == "__main__":
         tra_label_list.append(batch_label)
         
         # test
-        test_pred_value, test_lossReg_value = sess.run([test_preds,cross_entropy_test],feed_dict={x_test:test_x, x_test_label:test_y})
+        test_pred_value, test_lossReg_value = sess.run([test_preds,test_loss],feed_dict={x_test:test_x, x_test_label:test_y})
         #test_merr, test_serr = MAE(test_pred_value, test_y)
         # validation
         #valid_pred_value, valid_lossReg_value = sess.run([valid_pred,valid_lossReg],feed_dict={x_valid:valid_x, x_valid_label:valid_label})
@@ -402,7 +411,6 @@ if __name__ == "__main__":
         #val_merr_list.append(valid_merr)
         #val_serr_list.append(valid_serr)
         #val_preds_list.append(valid_pred_value)
-
         tes_loss_list.append(test_lossReg_value)
         #tes_merr_list.append(test_merr)
         #tes_serr_list.append(test_serr)
@@ -411,12 +419,16 @@ if __name__ == "__main__":
         #show(lossReg_value,"train")
         #show(valid_lossReg_value, valid_merr, valid_serr, "valid")
          #show(test_lossReg_value,"test")
+        plt.plot(ite_list,tra_loss_list,label="train loss")
+        plt.savefig('../data/out/train_loss.png')
+        
+        
 
         if epochs_completed==nEpo:
             isStop = True
 
 
-    with open("log/biternion_test_log.pickle","wb") as f:
+    with open("../data/out/log/biternion_test_log.pickle","wb") as f:
         pickle.dump(tra_loss_list,f)
         #pickle.dump(tra_merr_list,f)
         #pickle.dump(tra_serr_list,f)
@@ -433,4 +445,3 @@ if __name__ == "__main__":
         #pickle.dump(tes_merr_list,f)
         #pickle.dump(tes_serr_list,f)
         pickle.dump(tes_preds_list,f)
-        pickle.dump(test_label,f)
