@@ -21,6 +21,7 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
+import pandas as pd
 
 
 #===========================
@@ -58,7 +59,7 @@ def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
         #fc = [fc_relu(fc,W[i+1],B[i+1]) for i in range(layerNum-1)]
         #pdb.set_trace()
         fc2 = fc_relu(fc1,W[1],B[1])
-        fc3 = fc_relu(fc2,W[2],B[2])        
+        fc3 = tf.matmul(fc2,W[2]) + B[2]       
     return fc3
 
 #========================================
@@ -101,7 +102,12 @@ if __name__ == "__main__":
     #======================================
     # データ読み込み
     X = pickle.load(open("../data/out/data_x.pickle","rb"))
-    Y = pickle.load(open("../data//out/data_y.pickle","rb"))
+    Y = pickle.load(open("../data/out/data_y.pickle","rb"))
+
+    data_raw = pd.read_csv("../data/corporation_sample.csv")
+
+    title = data_raw['title']
+    description = data_raw['description']
 
     (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.2,random_state=0)
     train_y = train_y[np.newaxis].T
@@ -212,6 +218,18 @@ if __name__ == "__main__":
 
         if epochs_completed==nEpo:
             isStop = True
+    
+    train_len = len(train_x)
+    #pdb.set_trace()
+    df = pd.DataFrame({
+            'title':title[train_len:],
+            'description':description[train_len:],
+            'true class':test_y.T[0],
+            'predict class':test_pred_value.T[0]
+            })
+    df = df[['title','description','true class','predict class']]
+    #pdb.set_trace()
+    df.to_csv('../data/out/test_result.csv')
 
 
     with open("../data/out/log/biternion_test_log.pickle","wb") as f:
