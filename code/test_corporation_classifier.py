@@ -20,7 +20,7 @@ from pylab import rcParams
 import time
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 import pandas as pd
@@ -43,7 +43,7 @@ def fc_relu(inputs, w, b, rate=0.0):
 
 
 #=========================================================================
-def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
+def baseNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
     node = [400,100,50,1]
     layerNum = len(node)-1
     f_size = 3
@@ -57,7 +57,7 @@ def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
         fc1 = fc_relu(x,W[0],B[0],rates[1])
         #fc = [fc_relu(fc,W[i+1],B[i+1]) for i in range(layerNum-1)]
         fc2 = fc_relu(fc1,W[1],B[1])
-        fc3 = tf.matmul(fc2,W[2]) + B[2]       
+        fc3 = tf.matmul(fc2,W[2]) + B[2]
     return fc3
 
 #========================================
@@ -89,13 +89,8 @@ if __name__ == "__main__":
 
     #Epoch数
     nEpo = 1000
-    # plotする画像
-    plotNum = 25
-    plotWid = 5
-    augNum = 3
     # バッチデータ数
     batchSize = 30
-    croped_batchSize = batchSize*augNum
 
     #======================================
     # データ読み込み
@@ -110,10 +105,10 @@ if __name__ == "__main__":
     (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.2,random_state=0)
     train_y = train_y[np.newaxis].T
     test_y = test_y[np.newaxis].T
-    
+
     x_train = tf.placeholder(tf.float32,shape=[None,400])
     x_label = tf.placeholder(tf.float32,shape=[None,1])
-    
+
 
     x_test = tf.placeholder(tf.float32,shape=[None,400])
     x_test_label = tf.placeholder(tf.float32,shape=[None,1])
@@ -121,14 +116,13 @@ if __name__ == "__main__":
     #======================================
     #--------------------------------------
     ## build model
-    train_pred = baseCNN(x_train,rates=[0.2,0.5])
+    train_pred = baseNN(x_train,rates=[0.2,0.5])
 
-    
-    test_preds = baseCNN(x_test,reuse=True,isTrain=False)
-    
+    test_preds = baseNN(x_test,reuse=True,isTrain=False)
+
     #--------------------------------------
     ## loss function
-    
+
     train_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=train_pred,labels=x_label))
     test_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=test_preds,labels=x_test_label))
 
@@ -178,19 +172,19 @@ if __name__ == "__main__":
         batch_x,batch_label,train_x,train_y,index_in_epoch,epochs_completed = next_batch(batchSize,train_x,train_y,index_in_epoch,epochs_completed)
         batch_label = np.reshape(batch_label,[batchSize,1])
         #-----------------
-        
+
         # training
         _,lossReg_value,pred_value = sess.run([trainerReg,train_loss,train_pred],feed_dict={x_train:batch_x, x_label:batch_label})
 
         #
         pred_value = (pred_value > 0.5) * 1
-        
+
         #
         tra_conf_mat = confusion_matrix(batch_label, pred_value)
         tra_auc = roc_auc_score(batch_label, pred_value)
         tra_precision = precision_score(batch_label,pred_value)
         tra_recall = recall_score(batch_label,pred_value)
-       
+
         # 保存
         tra_loss_list.append(lossReg_value)
         tra_preds_list.append(pred_value)
@@ -211,7 +205,7 @@ if __name__ == "__main__":
         tes_precision = precision_score(test_y,test_pred_value)
         tes_recall = recall_score(test_y,test_pred_value)
         #pdb.set_trace()
-       
+
         #
         print("ite{0}:trainLoss:{1},testLoss:{2}".format(ite,lossReg_value,test_lossReg_value))
         #print("       confusion matrix : train {0}, test {1}".format(tra_conf_mat,tes_conf_mat))
@@ -229,7 +223,7 @@ if __name__ == "__main__":
 
         if epochs_completed==nEpo:
             isStop = True
-    
+
     train_len = len(train_x)
     #pdb.set_trace()
     df = pd.DataFrame({
@@ -257,5 +251,3 @@ if __name__ == "__main__":
         pickle.dump(tes_auc_list,f)
         #pickle.dump(tes_precision_list,f)
         #pickle.dump(tes_recall_list,f)
-
-        
