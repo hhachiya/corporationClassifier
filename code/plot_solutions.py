@@ -9,9 +9,9 @@ import matplotlib.pylab as plt
 if __name__ == "__main__":
 
     data = []
-    dataN = 3
+    dataN = 5
     dataType = 2
-    data_name = ["train loss","train confusion matrix","train auc","test loss","test confusion matrix","test auc"]
+    data_name = ["train loss","train confusion matrix","train auc","train precision","test loss","test confusion matrix","test auc"]
 
     with open("../data/out/log/biternion_test_log.pickle","rb") as f:
         for i in range(dataN*dataType):

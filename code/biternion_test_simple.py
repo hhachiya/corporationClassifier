@@ -20,9 +20,10 @@ from pylab import rcParams
 import time
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 import pandas as pd
-
 
 #===========================
 # レイヤーの関数
@@ -53,11 +54,8 @@ def baseCNN(x,reuse=False,isTrain=True,rates=[0.0,0.0]):
 
         W = [weight_variable("convW{}".format(i),[node[i],node[i+1]]) for i in range(layerNum)]
         B = [bias_variable("convB{}".format(i),[node[i+1]]) for i in range(layerNum)]
-        #pdb.set_trace()
         fc1 = fc_relu(x,W[0],B[0],rates[1])
-        #pdb.set_trace()
         #fc = [fc_relu(fc,W[i+1],B[i+1]) for i in range(layerNum-1)]
-        #pdb.set_trace()
         fc2 = fc_relu(fc1,W[1],B[1])
         fc3 = tf.matmul(fc2,W[2]) + B[2]       
     return fc3
@@ -151,12 +149,17 @@ if __name__ == "__main__":
     tra_label_list = []
     tra_conf_mat_list = []
     tra_auc_list = []
+    tra_precision_list = []
+    tra_recall_list = []
 
     tes_loss_list = []
     tes_preds_list = []
     tes_label_list = []
     tes_conf_mat_list = []
     tes_auc_list = []
+    tes_precision_list = []
+    tes_recall_list = []
+
     ite_list = []
     #======================================
     # 初期化
@@ -185,6 +188,8 @@ if __name__ == "__main__":
         #
         tra_conf_mat = confusion_matrix(batch_label, pred_value)
         tra_auc = roc_auc_score(batch_label, pred_value)
+        tra_precision = precision_score(batch_label,pred_value)
+        tra_recall = recall_score(batch_label,pred_value)
        
         # 保存
         tra_loss_list.append(lossReg_value)
@@ -192,7 +197,8 @@ if __name__ == "__main__":
         tra_label_list.append(batch_label)
         tra_conf_mat_list.append(tra_conf_mat)
         tra_auc_list.append(tra_auc)
-        
+        tra_precision_list.append(tra_precision)
+        tra_recall_list.append(tra_recall)
         # test
         test_pred_value, test_lossReg_value = sess.run([test_preds,test_loss],feed_dict={x_test:test_x, x_test_label:test_y})
 
@@ -202,19 +208,24 @@ if __name__ == "__main__":
         #
         tes_conf_mat = confusion_matrix(test_y, test_pred_value)
         tes_auc = roc_auc_score(test_y, test_pred_value)
-        
+        tes_precision = precision_score(test_y,test_pred_value)
+        tes_recall = recall_score(test_y,test_pred_value)
         #pdb.set_trace()
        
         #
         print("ite{0}:trainLoss:{1},testLoss:{2}".format(ite,lossReg_value,test_lossReg_value))
         #print("       confusion matrix : train {0}, test {1}".format(tra_conf_mat,tes_conf_mat))
         print("       auc              : train {0}, test {1}".format(tra_auc,tes_auc))
+        print("       precision        : train {0}, test {1}".format(tra_precision,tes_precision))
+        print("       recall           : train {0}, test {1}".format(tra_recall,tes_recall))
 
         # 保存
         tes_loss_list.append(test_lossReg_value)
         tes_preds_list.append(test_pred_value)
         tes_conf_mat_list.append(tes_conf_mat)
         tes_auc_list.append(tes_auc)
+        tes_precision_list.append(tes_precision)
+        tes_recall_list.append(tes_recall)
 
         if epochs_completed==nEpo:
             isStop = True
@@ -237,9 +248,14 @@ if __name__ == "__main__":
         #pickle.dump(tra_preds_list,f)
         pickle.dump(tra_conf_mat_list,f)
         pickle.dump(tra_auc_list,f)
+        #pickle.dump(tra_precision_list,f)
+        #pickle.dump(tra_recall_list,f)
 
         pickle.dump(tes_loss_list,f)
         #pickle.dump(tes_preds_list,f)
         pickle.dump(tes_conf_mat_list,f)
         pickle.dump(tes_auc_list,f)
+        #pickle.dump(tes_precision_list,f)
+        #pickle.dump(tes_recall_list,f)
+
         
