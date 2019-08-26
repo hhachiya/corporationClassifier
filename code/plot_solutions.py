@@ -26,9 +26,9 @@ if __name__ == "__main__":
             continue
         plt.plot(range(ite),data[i])
         if data_name[i] == "train loss" or data_name[i] == "test loss":
-            plt.ylim([80,0])
+            plt.ylim([0,5])
         else:
-            plt.ylim([1,0])
+            plt.ylim([0.3,1])
         plt.xlabel("iteration")
         plt.ylabel(data_name[i])
         plt.savefig("../data/out/{0}.png".format(data_name[i]))        
