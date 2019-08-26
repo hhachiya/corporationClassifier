@@ -9,9 +9,9 @@ import matplotlib.pylab as plt
 if __name__ == "__main__":
 
     data = []
-    dataN = 5
+    dataN = 3
     dataType = 2
-    data_name = ["train loss","train confusion matrix","train auc","train precision","test loss","test confusion matrix","test auc"]
+    data_name = ["train loss","train confusion matrix","train auc","test loss","test confusion matrix","test auc"]
 
     with open("../data/out/log/biternion_test_log.pickle","rb") as f:
         for i in range(dataN*dataType):
@@ -21,10 +21,14 @@ if __name__ == "__main__":
 
     for i in range(len(data_name)):
         plt.close()
-        #pdb.set_trace()
+        #pdb.set_trace()        
         if i == 1 or i == 4:
             continue
         plt.plot(range(ite),data[i])
+        if data_name[i] == "train loss" or data_name[i] == "test loss":
+            plt.ylim([80,0])
+        else:
+            plt.ylim([1,0])
         plt.xlabel("iteration")
         plt.ylabel(data_name[i])
         plt.savefig("../data/out/{0}.png".format(data_name[i]))        
