@@ -13,7 +13,7 @@ if __name__ == "__main__":
     dataType = 2
     data_name = ["train loss","train confusion matrix","train auc","test loss","test confusion matrix","test auc"]
 
-    with open("../data/out/log/biternion_test_log.pickle","rb") as f:
+    with open("../data/out/log/test_corpolation_classifier_log.pickle","rb") as f:
         for i in range(dataN*dataType):
             data.append(pickle.load(f))
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     for i in range(len(data_name)):
         plt.close()
-        #pdb.set_trace()        
+        #pdb.set_trace()
         if i == 1 or i == 4:
             continue
         plt.plot(range(ite),data[i])
@@ -31,6 +31,4 @@ if __name__ == "__main__":
             plt.ylim([0.5,1.1])
         plt.xlabel("iteration")
         plt.ylabel(data_name[i])
-        plt.savefig("../data/out/{0}.png".format(data_name[i]))        
-
-
+        plt.savefig("../data/out/{0}.png".format(data_name[i]))

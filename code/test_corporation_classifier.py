@@ -237,7 +237,7 @@ if __name__ == "__main__":
     df.to_csv('../data/out/test_result.csv')
 
 
-    with open("../data/out/log/biternion_test_log.pickle","wb") as f:
+    with open("../data/out/log/test_corpolation_classifier_log.pickle","wb") as f:
         pickle.dump(tra_loss_list,f)
         #pickle.dump(tra_preds_list,f)
         pickle.dump(tra_conf_mat_list,f)
