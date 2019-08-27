@@ -226,6 +226,8 @@ if __name__ == "__main__":
 
     train_len = len(train_x)
     #pdb.set_trace()
+    print("train confusion matrix:\n{0}".format(tra_conf_mat))
+    print("test confusion matrix :\n{0}".format(tes_conf_mat))
     df = pd.DataFrame({
             'title':title[train_len:],
             'description':description[train_len:],
