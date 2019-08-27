@@ -200,9 +200,31 @@ for i in range(len(data_name)):
 ```
 <a id="ID_3-2"></a>
 ### コードの実行結果
-以下のようにtrain loss,test loss,train auc,test aucがcorpolationClassifier/data/out保存される。
+以下のようにtrain loss,test loss,train auc,test auc,train precision,test precision,train recall,test recallがcorpolationClassifier/data/out保存される。
 <br>
 <img src ="https://user-images.githubusercontent.com/44080085/63733584-daf98e80-c8b3-11e9-8d45-2024e869105e.png" width="300">
 <img src ="https://user-images.githubusercontent.com/44080085/63733599-ea78d780-c8b3-11e9-9cee-60e5f93ea1e6.png" width="300">
 <img src ="https://user-images.githubusercontent.com/44080085/63733611-f9f82080-c8b3-11e9-8719-797f291e2f57.png" width="300">
 <img src ="https://user-images.githubusercontent.com/44080085/63733609-f6fd3000-c8b3-11e9-9e31-e68d02b1e89a.png" width="300">
+<img src ="https://user-images.githubusercontent.com/44080085/63774494-555bfa00-c918-11e9-833e-27ecd8baace8.png" width="300">
+<img src ="https://user-images.githubusercontent.com/44080085/63774456-3a898580-c918-11e9-9e97-53c98fec8f23.png" width="300">
+<img src ="https://user-images.githubusercontent.com/44080085/63774562-79b7d680-c918-11e9-8f3b-a2a39d1d9694.png" width="300">
+<img src ="https://user-images.githubusercontent.com/44080085/63774589-876d5c00-c918-11e9-8ce1-543a2d4aa74b.png" width="300">
+
+また、`test_corpolation_classifier.py`で作成されたpickleファイルにはconfusion matrixも保存されており、以下のような数値が格納されている。
+<br>
+[confusion matrixの参考](https://qiita.com/TsutomuNakamura/items/a1a6a02cb9bb0dcbb37f)
+<br>
+[auc,precision,recallの参考](http://kurora-shumpei.hatenablog.com/entry/2019/06/01/%E4%BA%8C%E5%80%A4%E5%88%86%E9%A1%9E%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8B%E8%A9%95%E4%BE%A1%E6%8C%87%E6%A8%99%E3%81%A8pAUC%E6%9C%80%E5%A4%A7%E5%8C%96(%E5%89%8D%E7%B7%A8))
+```
+array([[14,  4],
+       [ 9,  3]])
+array([[14,  2],
+       [12,  2]])
+array([[15,  0],
+       [15,  0]])
+array([[16,  1],
+       [13,  0]])
+array([[13,  3],
+       [ 9,  5]])
+```
