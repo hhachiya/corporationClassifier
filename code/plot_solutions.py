@@ -9,9 +9,9 @@ import matplotlib.pylab as plt
 if __name__ == "__main__":
 
     data = []
-    dataN = 3
+    dataN = 5
     dataType = 2
-    data_name = ["train loss","train confusion matrix","train auc","test loss","test confusion matrix","test auc"]
+    data_name = ["train loss","train confusion matrix","train auc","train precision","train recall","test loss","test confusion matrix","test auc","test precision","test recall"]
 
     with open("../data/out/log/test_corpolation_classifier_log.pickle","rb") as f:
         for i in range(dataN*dataType):
@@ -22,7 +22,8 @@ if __name__ == "__main__":
     for i in range(len(data_name)):
         plt.close()
         #pdb.set_trace()
-        if i == 1 or i == 4:
+        if data_name[i] == "train confusion matrix" or data_name[i] == "test confusion matrix":
+            #pdb.set_trace()
             continue
         plt.plot(range(ite),data[i])
         if data_name[i] == "train loss" or data_name[i] == "test loss":
