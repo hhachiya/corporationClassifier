@@ -175,7 +175,7 @@ test confusion matrix :
 ```
 test confusion matrix
 ![プレゼンテーション1＿_page-0001](https://user-images.githubusercontent.com/44080085/63784830-36fefa00-c92a-11e9-9b72-1c3ff815748f.jpg)
-corpolationClassifier/data/outにtestしたデータがtest_result.csvとして保存される。
+corpolationClassifier/data/outにtestしたデータが[test_result.csv](https://github.com/hhachiya/corporationClassifier/blob/master/data/out/test_result.csv)として保存される。
 ```test_result.csv
 title	description	true class	predict class
 176	簡単にオリジナルステッカー印刷 | 1000枚3,550円～低価格で製作	ステッカー・シール・ラベル印刷！自分だけのカスタムステッカー作成はステッカージャパンで！ 24時間365日注文受付・送料無料・低価格保証・豊富な素材・製品: アート紙ステッカー, ユポステッカー, 透明ステッカー, 屋外用ステッカー。	1	1
@@ -225,7 +225,6 @@ for i in range(len(data_name)):
 <img src ="https://user-images.githubusercontent.com/44080085/63774562-79b7d680-c918-11e9-8f3b-a2a39d1d9694.png" width="300">
 <img src ="https://user-images.githubusercontent.com/44080085/63774589-876d5c00-c918-11e9-8ce1-543a2d4aa74b.png" width="300">
 
-また、`test_corpolation_classifier.py`で作成されたpickleファイルにはconfusion matrixも保存されており、以下のような数値が格納されている。
 <br>
 
 [auc,precision,recallの参考](http://kurora-shumpei.hatenablog.com/entry/2019/06/01/%E4%BA%8C%E5%80%A4%E5%88%86%E9%A1%9E%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8B%E8%A9%95%E4%BE%A1%E6%8C%87%E6%A8%99%E3%81%A8pAUC%E6%9C%80%E5%A4%A7%E5%8C%96(%E5%89%8D%E7%B7%A8))
