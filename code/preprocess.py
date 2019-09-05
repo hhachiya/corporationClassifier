@@ -10,7 +10,7 @@ import pickle
 if __name__ ==  '__main__':
 
     df = pd.read_csv("../data/data_all.csv") #load csv file
-
+    #pdb.set_trace()
     mt = MeCab.Tagger('') #mecabでのパラメーター選択
     mt.parse('')
 
@@ -23,11 +23,12 @@ if __name__ ==  '__main__':
 
     out_title = [] #タイトルの全データの特徴量が入る
     out_description = [] #内容の全データの特徴量が入る
+    #pdb.set_trace()
 
     #------------------------------------
     #データ数分forループ
     for i in range(data_len):
-        title_mecab = mt.parse(title[i]) #titl[i]を分かち書き
+        title_mecab = mt.parse(title[i]) #title[i]を分かち書き
         description_mecab = mt.parse(description[i]) #description[i]を分かち書き
         parts_title = [] #タイトルごとの特徴量が入る
         parts_description = [] #内容ごとの特徴量が入る
@@ -69,10 +70,37 @@ if __name__ ==  '__main__':
         #-------------------------
         out_title.append(parts_title) #タイトルごとに配列に追加
         out_description.append(parts_description) #説明ごとに配列に追加
+        #pdb.set_trace()
     #-------------------------
+    """
+    for i in range(len(out_title)):
+        X = np.isnan(out_title[i])
+        X = np.sum(X.astype(int))
+        if X >= 1:
+            pdb.set_trace()
+    pdb.set_trace()
+    """
+    
+
+    for i in range(len(out_title)):
+        mean_title = np.mean(np.array(out_title[i]),axis=0)
+        mean_des = np.mean(np.array(out_description[i]),axis=0)
+        #pdb.set_trace()
+        try:
+            feature_stack = np.concatenate([mean_title,mean_des])
+        except:
+            if np.isnan(mean_title):
+                mean_title = mean_des
+            else:
+                mean_des = mean_title
+            feature_stack = np.concatenate([mean_title,mean_des])
+        if i == 0:
+            X = feature_stack[np.newaxis]
+        else:
+            X = np.append(X,feature_stack[np.newaxis],axis=0)
     #pdb.set_trace()
     #-------------------------
-    X = np.array([np.hstack([np.mean(np.array(out_title[i]),axis=0),np.mean(np.array(out_description[i]),axis=0)]) for i in range(len(out_title))]) ##feature_title,feature_descriptionをまとめて出力(221(データ数),400(特徴ベクトル)))
+    #X = np.array([np.hstack([np.mean(np.array(out_title[i]),axis=0),np.mean(np.array(out_description[i]),axis=0)]) for i in range(len(out_title))]) #feature_title,feature_descriptionをまとめて出力(221(データ数),400(特徴ベクトル)))
     Y = np.array(y) #labelをnumpyに変換
 
     #-------------------------

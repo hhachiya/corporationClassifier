@@ -97,15 +97,15 @@ if __name__ == "__main__":
     X = pickle.load(open("../data/out/data_x.pickle","rb"))
     Y = pickle.load(open("../data/out/data_y.pickle","rb"))
 
-    data_raw = pd.read_csv("../data/corporation_sample.csv")
+    data_raw = pd.read_csv("../data/data_all.csv")
 
     title = data_raw['title']
     description = data_raw['description']
 
-    (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.2,random_state=0)
+    (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.1,random_state=0)
     train_y = train_y[np.newaxis].T
     test_y = test_y[np.newaxis].T
-
+    #pdb.set_trace()
     x_train = tf.placeholder(tf.float32,shape=[None,400])
     x_label = tf.placeholder(tf.float32,shape=[None,1])
 
