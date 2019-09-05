@@ -9,7 +9,7 @@ import pickle
 
 if __name__ ==  '__main__':
 
-    df = pd.read_csv("../data/corporation_sample.csv") #load csv file
+    df = pd.read_csv("../data/data_all.csv") #load csv file
 
     mt = MeCab.Tagger('') #mecabでのパラメーター選択
     mt.parse('')
