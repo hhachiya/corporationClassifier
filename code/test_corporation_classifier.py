@@ -102,8 +102,9 @@ if __name__ == "__main__":
 
     title = data_raw['title']
     description = data_raw['description']
+    indices = np.arange(len(X))
 
-    (train_x,test_x,train_y,test_y) = train_test_split(X,Y,test_size = 0.1,random_state=0)
+    train_x,test_x,train_y,test_y,train_index,test_index = train_test_split(X,Y,indices,test_size = 0.1,random_state=0)
     train_y = train_y[np.newaxis].T
     test_y = test_y[np.newaxis].T
     #pdb.set_trace()
@@ -235,8 +236,8 @@ if __name__ == "__main__":
     print("train confusion matrix:\n{0}".format(tra_conf_mat))
     print("test confusion matrix :\n{0}".format(tes_conf_mat))
     df = pd.DataFrame({
-            'title':title[train_len:],
-            'description':description[train_len:],
+            'title':title[test_index],
+            'description':description[test_index],
             'true class':test_y.T[0],
             'predict class':test_pred_value.T[0]
             })
