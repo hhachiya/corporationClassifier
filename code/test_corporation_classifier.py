@@ -37,7 +37,7 @@ def bias_variable(name, shape):
 def fc_relu(inputs, w, b, rate=0.0):
     #pdb.set_trace()
     fc = tf.matmul(inputs, w) + b
-    fc = tf.nn.dropout(fc, rate=rate)
+    fc = tf.nn.dropout(fc, 1-rate)
     fc = tf.nn.relu(fc)
     return fc
 
@@ -88,9 +88,10 @@ if __name__ == "__main__":
     sess = tf.Session(config=config)
 
     #Epoch数
-    nEpo = 1000
+    nEpo = 500
     # バッチデータ数
-    batchSize = 30
+    batchSize = 100
+    modelPath = 'models'
 
     #======================================
     # データ読み込み
@@ -164,6 +165,9 @@ if __name__ == "__main__":
     index_in_epoch = 0
     #======================================
 
+    saver = tf.train.Saver()
+
+
     while not isStop:
         ite = ite + 1
         ite_list.append(ite)
@@ -207,11 +211,13 @@ if __name__ == "__main__":
         #pdb.set_trace()
 
         #
-        print("ite{0}:trainLoss:{1},testLoss:{2}".format(ite,lossReg_value,test_lossReg_value))
-        #print("       confusion matrix : train {0}, test {1}".format(tra_conf_mat,tes_conf_mat))
-        print("       auc              : train {0}, test {1}".format(tra_auc,tes_auc))
-        print("       precision        : train {0}, test {1}".format(tra_precision,tes_precision))
-        print("       recall           : train {0}, test {1}".format(tra_recall,tes_recall))
+        if ite%500==0:
+           saver.save(sess,f"{modelPath}/model_{ite}.ckpt")
+           print("ite{0}:trainLoss:{1},testLoss:{2}".format(ite,lossReg_value,test_lossReg_value))
+           #print("       confusion matrix : train {0}, test {1}".format(tra_conf_mat,tes_conf_mat))
+           print("       auc              : train {0}, test {1}".format(tra_auc,tes_auc))
+           print("       precision        : train {0}, test {1}".format(tra_precision,tes_precision))
+           print("       recall           : train {0}, test {1}".format(tra_recall,tes_recall))
 
         # 保存
         tes_loss_list.append(test_lossReg_value)
